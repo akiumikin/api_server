@@ -1,0 +1,35 @@
+version: '3.7'
+
+services:
+  api_server:
+    build: .
+    image: api_server:1.0
+    container_name: api_server
+    tty: true
+    stdin_open: true
+    ports:
+      - "3100:3000"
+    environment:
+      DOCKER: "true"
+    volumes:
+      - vendor-rails:/var/www/api_server/vendor
+      - .:/var/www/api_server
+    command: "bash -c 'rm -f tmp/pids/server.pid && bundle && bin/rails db:create db:migrate && bin/rails db:seed && bundle exec rails server -b 0.0.0.0'"
+
+  postgres:
+    image: postgres:13.1
+    container_name: postgres
+    ports:
+      - "3150:3306"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: 'root'
+      POSTGRES_PASSWORD: 'password'
+    restart: always
+
+volumes:
+  vendor-rails:
+    driver: 'local'
+  db-data:
+    name: api_server_db-data
